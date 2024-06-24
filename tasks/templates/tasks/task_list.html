@@ -1,55 +1,93 @@
 {% extends 'base.html' %}
-{%  load static %}
+{% load static %}
 {% block content %}
 
-        {% if task_list %}
-            <h5 style="color: greenyellow; margin:50px">Check list below:</h5>
-            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <a class="btn btn-sm btn-success" href="{% url 'task_form' %}">+</a>
-            </div>
 
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-primary" style="width: 20%; margin:0 auto">
-                        <p id="messages">{{ message }}</p>
-                    </div>
-                {% endfor %}
-            {% endif %}
+    {% if task_list %}
 
+        <h5 style="margin:50px">Check list below:</h5>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a class="btn btn-sm btn-success" href="{% url 'task_form' %}">+</a>
+        </div>
 
-            <table class="table table-dark ">
-                <thead>
-                <tr>
-                    <th scope="col"></th>
-                    <th scope="col">Título</th>
-                    <th scope="col">Criado em</th>
-                    <th scope="col">Data de entrega</th>
-                    <th scope="col">Finalizado em</th>
-                    <th scope="col">Ações</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for task in task_list %}
-                    <tr>
-                        <th scope="row">{{ forloop.counter }}</th>
-                        <td>{{ task.title }}</td>
-                        <td>{{ task.created_date }}</td>
-                        <td>{{ task.deadline }}</td>
-                        <td>{{ task.finished_at|default:"-" }}</td>
-                        <td>
-                            <a href="#" class="btn btn-sm btn-primary">Concluir</a>
-                            <a href="#" class="btn btn-sm btn-danger">Excluir</a>
-                            <a href="{% url 'task_update' pk=task.pk %}">
-                                <img src="{% static 'base_static/tasks/assets/icons/ferramenta-lapis' %}" alt="ferramenta lapis" >
-                            </a>
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        {%  else %}
-            <h5 style="color: greenyellow; margin:50px">Não há tarefas cadastradas no momento.</h5>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-primary" style="width: 20%; margin:0 auto">
+                    <p id="messages">{{ message }}</p>
+                </div>
+            {% endfor %}
         {% endif %}
+
+
+        <table class="table table-dark">
+            <thead>
+            <tr>
+                <th scope="col"></th>
+                <th scope="col">Título</th>
+                <th scope="col">Criado em</th>
+                <th scope="col">Data de entrega</th>
+                <th scope="col">Finalizado em</th>
+                <th scope="col">Ações</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for task in task_list %}
+                <tr>
+                    <th scope="row">{{ forloop.counter }}</th>
+                    <td>{{ task.title }}</td>
+                    <td>{{ task.created_date }}</td>
+                    <td>{{ task.deadline }}</td>
+                    <td>{{ task.finished_at|default:"-" }}</td>
+                    <td>
+                        <a href="{% url 'task_complete' pk=task.pk %}"
+                           class="btn btn-primary {% if task.finished_at %}disabled{% endif %}"
+                           onclick="abrirModal()">
+                            <i class="bi bi-check-lg"></i>
+                        </a>
+
+                        <div class="modal fade" id="modal" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Modal title</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Modal body text goes here.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-primary">Save changes</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    <script>
+                        function abrirModal() {
+                            var myModal = new bootstrap.Modal(document.getElementById('modal'), {
+                                keyboard: false
+                            });
+                            myModal.show();
+                        }
+                    </script>
+
+                        <a href="{% url 'task_delete' pk=task.pk %}" class="btn btn-danger
+                            {% if task.finished_at %}disabled{% endif %}">
+                            <i class="bi bi-trash-fill"></i>
+                        </a>
+                        <a href="{% url 'task_update' pk=task.pk %}" class="btn btn-warning
+                            {% if task.finished_at %}disabled{% endif %}">
+                            <i class="bi bi-pencil-fill"></i>
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <h5 style="color: greenyellow; margin:50px">Não há tarefas cadastradas no momento.</h5>
+    {% endif %}
 
 
 

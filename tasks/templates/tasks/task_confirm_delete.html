@@ -1,0 +1,14 @@
+{%  extends 'base.html' %}
+
+{%  block content %}
+    <h5 style="color: greenyellow; margin:50px">Tem certeza que deseja excluir a tarefa <u>{{ task.title }}</u>?</h5>
+
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <button type="submit" class="btn btn-danger">Excluir</button>
+        <a href="{% url 'task_list' %}" type="submit" class="btn btn-primary">Cancelar</a>
+    </form>
+{% endblock content %}
+

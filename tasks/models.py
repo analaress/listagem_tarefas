@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import date
 
 
 class Task(models.Model):
@@ -9,3 +10,9 @@ class Task(models.Model):
 
     class Meta:
         db_table = 'tasks'
+        ordering = ['deadline']
+
+    def mark_has_complete(self):
+        if not self.finished_at:
+            self.finished_at = date.today()
+            self.save()
