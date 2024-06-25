@@ -2,9 +2,30 @@
 {% load static %}
 {% block content %}
 
+    <div class="modal fade modal-delete"  tabindex="-1" id="delete-modal">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark">
+                <div class="modal-header">
+                <h5 class="modal-title" style="color: greenyellow; margin:50px">
+                    <p id="modal-description"></p>
+                </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Essa ação será irreversível</p>
+                </div>
+                <div class="modal-footer">
+                    <form method="POST" action="#">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Excluir</button>
+                        <a href="{% url 'task_list' %}" type="submit" class="btn btn-primary">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {% if task_list %}
-
         <h5 style="margin:50px">Check list below:</h5>
         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
             <a class="btn btn-sm btn-success" href="{% url 'task_form' %}">+</a>
@@ -16,8 +37,7 @@
                     <p id="messages">{{ message }}</p>
                 </div>
             {% endfor %}
-        {% endif %}
-
+    {% endif %}
 
         <table class="table table-dark">
             <thead>
@@ -32,7 +52,7 @@
             </thead>
             <tbody>
             {% for task in task_list %}
-                <tr>
+                <tr data-id="{{ task.id }}">
                     <th scope="row">{{ forloop.counter }}</th>
                     <td>{{ task.title }}</td>
                     <td>{{ task.created_date }}</td>
@@ -40,42 +60,19 @@
                     <td>{{ task.finished_at|default:"-" }}</td>
                     <td>
                         <a href="{% url 'task_complete' pk=task.pk %}"
-                           class="btn btn-primary {% if task.finished_at %}disabled{% endif %}"
-                           onclick="abrirModal()">
+                           class="btn btn-primary {% if task.finished_at %}disabled{% endif %}">
                             <i class="bi bi-check-lg"></i>
                         </a>
 
-                        <div class="modal fade" id="modal" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Modal title</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p>Modal body text goes here.</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                        <button type="button" class="btn btn-primary">Save changes</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
-                    <script>
-                        function abrirModal() {
-                            var myModal = new bootstrap.Modal(document.getElementById('modal'), {
-                                keyboard: false
-                            });
-                            myModal.show();
-                        }
-                    </script>
-
-                        <a href="{% url 'task_delete' pk=task.pk %}" class="btn btn-danger
-                            {% if task.finished_at %}disabled{% endif %}">
+                        <a href="{% url 'task_delete' pk=task.pk %}" class="btn btn-danger delete
+                            {% if task.finished_at %}disabled{% endif %}"
+                           data-bs-toggle="modal"
+                           data-bs-target="#delete-modal">
                             <i class="bi bi-trash-fill"></i>
                         </a>
+
+
                         <a href="{% url 'task_update' pk=task.pk %}" class="btn btn-warning
                             {% if task.finished_at %}disabled{% endif %}">
                             <i class="bi bi-pencil-fill"></i>
@@ -89,6 +86,21 @@
         <h5 style="color: greenyellow; margin:50px">Não há tarefas cadastradas no momento.</h5>
     {% endif %}
 
+    <script>
+        const deleteBtns = document.querySelectorAll('.delete');
+
+        deleteBtns.forEach(e => {
+
+            e.addEventListener('click', (e) => {
+
+                const tr = e.currentTarget.parentNode.parentNode;
+                const title = tr.querySelector('td').textContent.trim();
+
+                document.querySelector('#modal-description').textContent = `Tem certeza que deseja excluir a tarefa ${title}?`;
+                document.querySelector('.modal-delete').querySelector('form').action = `/delete/${tr.dataset.id}`;
+            })
+        });
+    </script>
 
 
 {% endblock content %}

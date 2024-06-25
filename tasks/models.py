@@ -3,6 +3,7 @@ from datetime import date
 
 
 class Task(models.Model):
+    # id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False,verbose_name="ID"),
     title = models.CharField(max_length=100, null=False, blank=False)
     created_date = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     deadline = models.DateField(null=False, blank=False)

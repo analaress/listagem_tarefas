@@ -6,10 +6,6 @@ from django.shortcuts import get_object_or_404, redirect
 from .models import Task
 
 
-def home_view(request):
-    return render(request, "tasks/home_view.html")
-
-
 class TaskListView(ListView):
     model = Task
 
@@ -36,6 +32,7 @@ class TaskUpdateView(UpdateView):
 
 class TaskDeleteView(DeleteView):
     model = Task
+    lookup_field = "id"
     success_url = reverse_lazy('task_list')
 
 
