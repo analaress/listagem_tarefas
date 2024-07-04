@@ -14,20 +14,12 @@ class TaskCreateView(CreateView):
     model = Task
     fields = ["title", "deadline"]
     success_url = reverse_lazy('task_list')
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, "New task created successfully")
-        return response
+
 
 class TaskUpdateView(UpdateView):
     model = Task
     fields = ["title", "deadline"]
     success_url = reverse_lazy('task_list')
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, "Task updated successfully")
-        return response
 
 
 class TaskDeleteView(DeleteView):

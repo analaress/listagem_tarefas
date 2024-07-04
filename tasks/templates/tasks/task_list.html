@@ -2,33 +2,41 @@
 {% load static %}
 {% block content %}
 
-    <div class="modal fade modal-delete"  tabindex="-1" id="delete-modal">
+    <div class="modal fade modal"  tabindex="-1" id="actionModal">
         <div class="modal-dialog">
             <div class="modal-content bg-dark">
                 <div class="modal-header">
-                <h5 class="modal-title" style="color: greenyellow; margin:50px">
-                    <p id="modal-description"></p>
-                </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="modalTitle" style="color: greenyellow; margin:50px">
+                        <!-- Título será atualizado dinamicamente -->
+                    </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Essa ação será irreversível</p>
+                    <p id="modalDescription"></p>
                 </div>
-                <div class="modal-footer">
-                    <form method="POST" action="#">
+                    <form method="POST" id="modalForm">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">Excluir</button>
-                        <a href="{% url 'task_list' %}" type="submit" class="btn btn-primary">Cancelar</a>
+                        <div id="forms-fields">
+                            <!-- Campos do formulario será atualizado dinamicamente -->
+                        </div>
+
+                        <div class="modal-footer">
+                            <a href="{% url 'task_list' %}" class="btn btn-primary">Cancelar</a>
+                            <button type="submit" class="btn btn-danger" id="modalActionButton">
+                                <!-- Botao será atualizado dinamicamente -->
+                            </button>
+                        </div>
+
                     </form>
-                </div>
             </div>
         </div>
     </div>
 
+
     {% if task_list %}
         <h5 style="margin:50px">Check list below:</h5>
         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-            <a class="btn btn-sm btn-success" href="{% url 'task_form' %}">+</a>
+            <a class="btn btn-sm btn-primary" href="{% url 'task_form' %}">+</a>
         </div>
 
         {% if messages %}
@@ -37,7 +45,7 @@
                     <p id="messages">{{ message }}</p>
                 </div>
             {% endfor %}
-    {% endif %}
+        {% endif %}
 
         <table class="table table-dark">
             <thead>
@@ -60,23 +68,24 @@
                     <td>{{ task.finished_at|default:"-" }}</td>
                     <td>
                         <a href="{% url 'task_complete' pk=task.pk %}"
-                           class="btn btn-primary {% if task.finished_at %}disabled{% endif %}">
+                           class="btn btn-primary action-button {% if task.finished_at %}disabled{% endif %}">
                             <i class="bi bi-check-lg"></i>
                         </a>
 
 
-                        <a href="{% url 'task_delete' pk=task.pk %}" class="btn btn-danger delete
-                            {% if task.finished_at %}disabled{% endif %}"
-                           data-bs-toggle="modal"
-                           data-bs-target="#delete-modal">
+                        <a href="#" class="btn btn-danger
+                            action-button {% if task.finished_at %}disabled{% endif %}"
+                            onclick="showModal('delete', '{% url 'task_delete' pk=task.pk %}')">
                             <i class="bi bi-trash-fill"></i>
                         </a>
 
 
-                        <a href="{% url 'task_update' pk=task.pk %}" class="btn btn-warning
-                            {% if task.finished_at %}disabled{% endif %}">
+                        <a href="#" class="btn btn-warning
+                            action-button {% if task.finished_at %}disabled{% endif %}"
+                            onclick="showModal('edit', '{% url 'task_update' pk=task.pk %}')">
                             <i class="bi bi-pencil-fill"></i>
                         </a>
+
                     </td>
                 </tr>
             {% endfor %}
@@ -87,19 +96,56 @@
     {% endif %}
 
     <script>
-        const deleteBtns = document.querySelectorAll('.delete');
+        function showModal(action) {
+            // variaveis para elementos do modal
+             const modalTitle = document.getElementById('modalTitle');
+             const modalDescription = document.getElementById('modalDescription');
+             const modalActionButton = document.getElementById('modalActionButton');
+             const modalForm = document.getElementById('modalForm');
 
-        deleteBtns.forEach(e => {
+             // configuraçoes para açao
+            if (action === 'edit') {
+                modalTitle.innerHTML = 'Editar';
 
-            e.addEventListener('click', (e) => {
+                modalDescription.innerHTML = 'Você está prestes a editar este item.';
+                modalActionButton.innerHTML = 'Salvar';
+                modalActionButton.classList.remove('btn-danger');
+                modalActionButton.classList.add('btn-success');
+                modalForm.action = '{% url "task_list" %}'; // Atualize para a URL correta da edição
+                // form para edicao
 
-                const tr = e.currentTarget.parentNode.parentNode;
-                const title = tr.querySelector('td').textContent.trim();
+                for (const [key, value] of Object.entries(taskData)) {
+                    const formGroup = document.createElement('div');
+                    formGroup.classList.add('mb-3');
 
-                document.querySelector('#modal-description').textContent = `Tem certeza que deseja excluir a tarefa ${title}?`;
-                document.querySelector('.modal-delete').querySelector('form').action = `/delete/${tr.dataset.id}`;
-            })
-        });
+                    const label = document.createElement('label');
+                    label.classList.add('form-label');
+                    label.innerText = key.charAt(0).toUpperCase() + key.slice(1);  // Capitaliza a primeira letra do campo
+
+                    const inputField = document.createElement('input');
+                    inputField.type = 'text';
+                    inputField.classList.add('form-control');
+                    inputField.name = key;
+                    inputField.value = value;
+
+                    formGroup.appendChild(label);
+                    formGroup.appendChild(inputField);
+                    formFieldsContainer.appendChild(formGroup);
+                }
+
+            } else if (action === 'delete') {
+                modalTitle.innerHTML = 'Excluir';
+                modalDescription.innerHTML = 'Você está prestes a excluir .Essa ação será irreversível.';
+                modalActionButton.innerHTML = 'Excluir';
+                modalActionButton.classList.remove('btn-success');
+                modalActionButton.classList.add('btn-danger');
+                modalForm.action = '{% url "task_list" %}'; // Atualize para a URL correta da exclusão
+            }
+
+            // Exibir o modal
+            var actionModal = new bootstrap.Modal(document.getElementById('actionModal'));
+            actionModal.show();
+        }
     </script>
 
 
